@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+ 
+  {% block container %}
+    <h1>Send your message for users.</h1>
+    {% if current_user.is_authenticated %}
+      <h3>Hey {{ current_user.username }}!!</h3>
+        <form action="" method="POST">
+          {{ form.hidden_tag() }}
+          <p>
+            {{ form.recipients.label }}
+            {{ form.recipients }}
+          </p><br>
+          <p>
+            {{ form.subject.label }}
+            {{ form.subject(size=80) }}
+          </p><br>
+          <p>
+            {{ form.body.label }}
+            {{ form.body(cols=80, rows=10) }}
+          </p><br>
+          <p>
+            {{ form.submit() }}
+          </p>
+        </form>
+      <a href="{{ url_for('auth.logout') }}">Click here to logout</a>
+    {% else %}
+    Click here to <a href="{{ url_for('auth.login') }}">login with LDAP</a>
+    {% endif %}
+  {% endblock %}
