@@ -55,7 +55,13 @@ class RecipientsGroup(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
 
+    def __repr__(self):
+        return '{}, {}'.format(self.id, self.name)
+
 
 class Event(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    last_seen = db.Column(db.DateTime, default=datetime.utcnow)
+    owner = db.Column(db.Integer, db.ForeignKey('user.id'))
+    recipients = db.Column(db.Integer, db.ForeignKey('recipients_group.id'))
+    title = db.Column(db.String(120))
+    event_date = db.Column(db.DateTime, default=datetime.utcnow)

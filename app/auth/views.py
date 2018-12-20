@@ -2,9 +2,10 @@ import ldap
 from flask import request, render_template, flash, redirect, url_for, Blueprint, g
 from flask_login import current_user, login_user, logout_user, login_required
 from app import login_manager, db, app
-from app.auth.models import User, Recipient
+from app.auth.models import User, Recipient, Event
 from app.forms import LoginForm, EmailSenderForm
 from app.email import send_email
+from datetime import datetime
 
 
 auth = Blueprint('auth', __name__)
@@ -26,9 +27,11 @@ def home():
     form = EmailSenderForm()
     if form.validate_on_submit():
         recipients = [str(i) for i in Recipient.query.filter_by(group_id=form.recipients.data).all()]
-        print(recipients)
         cc = app.config['COPY_GROUP']
         send_email(form.subject.data, app.config['SENDER'], recipients, cc, form.body.data, form.body.data)
+        event = Event(owner=current_user.id, recipients=form.recipients.data, title=form.subject.data)
+        db.session.add(event)
+        db.session.commit()
         flash('Your message was send!')
         return redirect(url_for('auth.home'))
     return render_template('home.html', form=form)
