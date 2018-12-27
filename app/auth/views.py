@@ -5,7 +5,6 @@ from app import login_manager, db, app
 from app.auth.models import User, Recipient, Event
 from app.forms import LoginForm, EmailSenderForm
 from app.email import send_email
-from datetime import datetime
 
 
 auth = Blueprint('auth', __name__)
@@ -21,20 +20,22 @@ def get_current_user():
     g.user = current_user
 
 
-@auth.route('/')
+@auth.route('/', methods=['GET', 'POST'])
 @auth.route('/home', methods=['GET', 'POST'])
 def home():
     form = EmailSenderForm()
+    events = Event.query.all()
     if form.validate_on_submit():
         recipients = [str(i) for i in Recipient.query.filter_by(group_id=form.recipients.data).all()]
-        cc = app.config['COPY_GROUP']
-        send_email(form.subject.data, app.config['SENDER'], recipients, cc, form.body.data, form.body.data)
+        print('Sending to: {}'.format(recipients))
+        print('Sending copy to: {}'.format(app.config['COPY_GROUP']))
+        send_email(form.subject.data, app.config['SENDER'], recipients, app.config['COPY_GROUP'], form.body.data, form.body.data)
         event = Event(owner=current_user.id, recipients=form.recipients.data, title=form.subject.data)
         db.session.add(event)
         db.session.commit()
         flash('Your message was send!')
         return redirect(url_for('auth.home'))
-    return render_template('home.html', form=form)
+    return render_template('home.html', form=form, events=events)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
